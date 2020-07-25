@@ -64,9 +64,9 @@ $ docker exec -it jenkins-blueocean /bin/cat /var/jenkins_home/secrets/initialAd
 ```
 3. To create new job follow these steps
 ```
-Click 'New Item' → Enter the job name → Chose 'Pipeline' and click 'OK'
-→ Input the Description → Click 'pipeline' on the menu bar
-→ Copy Jenkinsfile's content into the pipeline's textbox → Click 'Save'
+Click 'New Item' → Enter the job name → Chose 'Pipeline' and click 'OK' →
+Input the Description → Click 'pipeline' on the menu bar →
+Copy Jenkinsfile's content into the pipeline's textbox → Click 'Save'
 ```
 4. To test click Build now.
 
