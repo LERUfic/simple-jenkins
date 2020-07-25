@@ -93,9 +93,13 @@ node {
 	        	sh 'git config --global user.name "Aguel Satria Wijaya"'
 	        	try{
 	        		sh 'git commit -m "'+"${commitMsg}"+'"'
+	        	}catch(Exception e) {
+	        		echo "Skip commit! Try push..."
+	        	}
+	        	try{
 	            	sh 'git push https://'+"${GIT_USERNAME}"+":"+"${GIT_PASSWORD}"+'@github.com/'+"${GIT_USERNAME}"+'/'+"${folderTerraform}"+'.git'
 	        	}catch(Exception e) {
-	        		echo "Skip commit and push.."
+	        		echo "Skip push! Next step..."
 	        	}
 	        }
 	    }
