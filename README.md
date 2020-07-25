@@ -1,3 +1,4 @@
+# Jenkinsfile MASIH DALAM TAHAP UJI COBA UNTUK SAAT INI
 # Simple Jenkins Configuration 
 Jenkins for clone build and push image to registry
 
