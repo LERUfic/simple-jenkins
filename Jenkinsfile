@@ -20,6 +20,10 @@ def buildImagePush(String urlRegistry, String credentialRegistry, String reposit
     }
 }
 
+def deleteImageLocal(String urlRegistry, String repositoryRegistry, String tagApplication){
+    sh 'docker rmi '+"${repositoryRegistry}"+':'+"${tagApplication}"
+}
+
 node {
     def nameApplication = 'laravel'
     def buildNumberApplication = 'v'+"${BUILD_NUMBER}"
@@ -34,6 +38,8 @@ node {
     def credentialsGit = 'GITHUB'
 
     def repositoryTerraform = 'https://github.com/LERUfic/terraform-laravel'
+    def folderTerraform = 'terraform-laravel'
+    def commitMsg = "chore(terraform-state): change terraform state "+"${BUILD_NUMBER}"
 
     stage('Checkout Git'){
         checkout(
@@ -62,22 +68,37 @@ node {
         }
       }catch(Exception e) {
         dir("${env.WORKSPACE}/terraform-laravel"){
-          sh 'cd git'
           sh 'git pull'    
         }           
       }
     }
 
     stage('Terraform Init') { 
-      dir("${env.WORKSPACE}/terraform-laravel"){
+      dir("${env.WORKSPACE}/${folderTerraform}"){
         sh 'docker run --user `id -u` -w /app -v `pwd`:/app hashicorp/terraform:light init'
       }
     }
 
     stage('Terraform Apply') { 
-      dir("${env.WORKSPACE}/terraform-laravel"){
+      dir("${env.WORKSPACE}/${folderTerraform}"){
         sh 'docker run --user `id -u` -w /app -v `pwd`:/app hashicorp/terraform:light apply -auto-approve'
       }
+    }
+
+    stage('Push TFState'){ 
+    	dir("${env.WORKSPACE}/${folderTerraform}"){
+	        withCredentials([usernamePassword(credentialsId: 'GITHUB', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+	        	sh 'git add -A'
+	        	sh 'git config --global user.email "aguelsw@gmail.com"'
+	        	sh 'git config --global user.name "Aguel Satria Wijaya"'
+	        	try{
+	        		sh 'git commit -m "'+"${commitMsg}"+'"'
+	            	sh 'git push https://'+"${GIT_USERNAME}"+":"+"${GIT_PASSWORD}"+'@github.com/'+"${GIT_USERNAME}"+'/'+"${folderTerraform}"+'.git'
+	        	}catch(Exception e) {
+	        		echo "Skip commit and push.."
+	        	}
+	        }
+	    }
     }
 
     stage('Build by Tag'){
@@ -91,8 +112,17 @@ node {
     
     stage('Cleanup Docker'){
         dir("${env.WORKSPACE}"){
-        	sh 'rm -rf MyGit/'
-            sh 'docker image prune --all'
+            sh 'rm -rf MyGit/'
         }
+        deleteImageLocal(
+            urlRegistry as String,
+            repositoryRegistry as String,
+            buildNumberApplication as String
+        )
+        deleteImageLocal(
+            urlRegistry as String,
+            repositoryRegistry as String,
+            buildMustApplication as String
+        )
     }
 }
